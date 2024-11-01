@@ -3,7 +3,7 @@ class Database {
     private $host = 'localhost';
     private $db = 'efitnessdb';
     private $user = 'postgres';
-    private $pass = '080899';
+    private $pass = 'password';
     private $charset = 'utf8';
     private $pdo;
 

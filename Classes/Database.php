@@ -9,6 +9,7 @@ class Database {
 
     public function __construct() {
         $dsn = "pgsql:host=$this->host;dbname=$this->db;options='--client_encoding=$this->charset'";
+        
         $options = [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,

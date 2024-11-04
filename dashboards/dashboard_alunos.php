@@ -1,7 +1,7 @@
 <?php
-require_once '../classes/Database.php';
-require_once '../classes/User.php';
-require_once '../classes/Dashboard.php';
+require_once '../Classes/Database.php';
+require_once '../Classes/User.php';
+require_once '../Classes/Dashboard.php';
 
 $db = new Database();
 $user = new User($db);

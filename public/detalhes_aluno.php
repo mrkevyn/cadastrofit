@@ -47,7 +47,7 @@ $_SESSION['aluno'] = $aluno;
     <title>Detalhes do Aluno</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" type="text/css" href="../css/dashboard_detalhes.css">
-    <link rel="stylesheet" href="../css/style_cal.css">
+    <link rel="stylesheet" href="../css/style_calc.css">
     <link rel="shortcut icon" href="../img/icon.png" type="image/x-icon">
 
 </head>
@@ -241,10 +241,10 @@ document.getElementById('selectFormula').addEventListener('change', function () 
                             resultadoContainer.innerHTML = `
                                 <table>
                                     <tr><th>Fórmula</th><th>Resultado</th></tr>
-                                    <tr><td>Percentual de Gordura Corporal</td><td>${resposta.percentual_gordura_masculina}%</td></tr>
-                                    <tr><td>Massa gorda</td><td>${resposta.massa_gorda} kg</td></tr>
-                                    <tr><td>Massa magra</td><td>${resposta.massa_magra} kg</td></td>
-                                    <tr><td>Peso</td><td>${resposta.peso} kg</td></tr>
+                                    <tr><td class='linha' >Percentual de Gordura Corporal</td><td class='linha'>${resposta.percentual_gordura_masculina}%</td></tr>
+                                    <tr><td class='linha'>Massa gorda</td><td class='linha'>${resposta.massa_gorda} kg</td></tr>
+                                    <tr><td class='linha'>Massa magra</td><td class='linha'>${resposta.massa_magra} kg</td></td>
+                                    <tr><td class='linha'>Peso</td><td class='linha'>${resposta.peso} kg</td></tr>
                                 </table>
                             `;
                         } else {

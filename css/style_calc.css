@@ -69,7 +69,7 @@ button:hover {
 }
 
 table {
-  min-width: 650px;
+  min-width: 600px;
   /* margin: 20px auto; */
   border-collapse: collapse;
   border: 1px solid #ccc;
@@ -77,15 +77,18 @@ table {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-th,
-td {
-  border: 1px solid #dee2e6;
+.linha {
+  border: none;
+  border-top: 1px solid #003d7e;
+  border-bottom: 5px dotted #003d7e;
+  border-left: 5px solid transparent;
   padding: 15px;
   text-align: left;
 }
 
 th {
   background-color: #003d7e;
+  border-left: 5px solid #003d7e;
   color: #ffffff;
   cursor: pointer;
 }

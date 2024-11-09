@@ -47,7 +47,7 @@ $_SESSION['aluno'] = $aluno;
     <title>Detalhes do Aluno</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" type="text/css" href="../css/dashboard_detalhes.css">
-    <link rel="stylesheet" href="../css/style_calc.css">
+    <link rel="stylesheet" href="../css/style_cal.css">
     <link rel="shortcut icon" href="../img/icon.png" type="image/x-icon">
 
 </head>

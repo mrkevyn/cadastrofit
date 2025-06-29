@@ -126,8 +126,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   </main>
 
-
-
   <div class="footer">
     <p>CadastroFit &copy; 2024 <a href="https://github.com/Andre-MB/CadastroFit" target="_blank">LTD</a> </p>
   </div>

@@ -60,11 +60,12 @@ $userData = $user->getUserData();
                 <table>
                     <thead>
                         <tr>
-                            <th>Nome</th>
-                            <th>Telefone</th>
-                            <th>Sexo</th>
+                            <th>Nome <span class="sort-indicator"><i class="fas"></i></span></th>
+                            <th>Telefone <span class="sort-indicator"><i class="fas"></i></span></th>
+                            <th>Sexo <span class="sort-indicator"><i class="fas"></i></span></th>
                         </tr>
                     </thead>
+
                     <tbody>
                         <?php foreach ($alunos as $aluno) : ?>
                             <tr onclick="window.location='../public/detalhes_aluno.php?id=<?php echo $aluno['id']; ?>'">

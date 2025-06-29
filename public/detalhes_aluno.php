@@ -23,13 +23,17 @@ if (!$id_aluno) {
 $aluno = $alunoClass->getAlunoDetails($id_aluno);
 $datasAnamnese = $alunoRepo->getDatasAnamnese($id_aluno);
 $datasAntropometria = $alunoRepo->getDatasAntropometria($id_aluno);
+$datasTestesFisicos = $alunoRepo->getDatasTestesFisicos($id_aluno);
 
 $anamnese = $alunoRepo->getAnamnese($id_aluno, $data_escolhida);
 $antropometria = $alunoRepo->getAntropometria($id_aluno, $data_escolhida);
+
+error_log("Peso para cálculo: " . $antropometria['peso']);
 //$testesFisicos = $alunoRepo->getTestesFisicos($id_aluno, $data_escolhida);
 $objetivos = $alunoRepo->getObjetivos($id_aluno);
 
 $idade = $alunoClass->getIdade($aluno['data_nascimento']);
+$sexo = $alunoClass->getAlunoDetails($id_aluno);
 
 $_SESSION['aluno_id'] = $id_aluno;
 $_SESSION['data_escolhida'] = $data_escolhida;
@@ -139,88 +143,135 @@ $_SESSION['aluno'] = $aluno;
         </div>
 
         <div id="calculadora" class="hiden">
-            <div class="data_form">
-            <select name="Data" id="selectData">
-                    <option value="">Data</option>
-                    <?php
-                    foreach ($datasAntropometria as $data) {
-                        $data_formatada = date('d/m/Y', strtotime($data));
-                        echo "<option value=\"$data\">$data_formatada</option>";
-                    }
-                    ?>
-                </select>
-
-                <select name="formula" id="selectFormula">
-                    <option value="">Formulas</option>
-                        <?php if (strtolower($aluno['sexo']) === "masculino") : ?>
-                        <option value="percentual_gordura_masculina">Percentual de Gordura Corporal Masculina</option>
-                        <option value="percentual_gordura_meninos">Percentual de Gordura Corporal Meninos (8-18 anos)</option>
-                    <?php elseif (strtolower($aluno['sexo']) === "feminino") : ?>
-                        <option value="percentual_gordura_feminina">Percentual de Gordura Corporal Feminina</option>
-                        <option value="percentual_gordura_meninas">Percentual de Gordura Corporal Meninas (8-18 anos)</option>
-                    <?php else : ?>
-                        <option value="percentual_gordura_masculina">Percentual de Gordura Corporal Masculina</option>
-                        <option value="percentual_gordura_feminina">Percentual de Gordura Corporal Feminina</option>
-                        <option value="percentual_gordura_meninos">Percentual de Gordura Corporal Meninos (8-18 anos)</option>
-                        <option value="percentual_gordura_meninas">Percentual de Gordura Corporal Meninas (8-18 anos)</option>
-                    <?php endif; ?>
-                </select>
-
-            </div>
-
-            <?php
-                // Adiciona o campo oculto no HTML
-                echo "<input type='hidden' id='idadeAluno' value='$idade'>";
-            ?>
-            <h4 id="resultado">Resultados :</h4>
-
-            <div class="btn">
-                <button id="salvarDadosBtn">Salvar</button>
-            </div>
+        <div class="button-group-custom">
+            <button class="custom-btn" id="btnTestesFisicos">Testes Físicos</button>
+            <button class="custom-btn" id="btnAntropometria">Antropometria</button>
         </div>
 
+    <div class="data_form hiden" id="antropometriaFields">
+        <select name="Data" id="selectData">
+            <option value="">Data</option>
+            <?php
+            foreach ($datasAntropometria as $data) {
+                $data_formatada = date('d/m/Y', strtotime($data));
+                echo "<option value=\"$data\">$data_formatada</option>";
+            }
+            ?>
+        </select>
+
+        <select name="formula" id="selectFormula">
+            <option value="">Formulas</option>
+            <?php if (strtolower($aluno['sexo']) === "masculino") : ?>
+                <option value="percentual_gordura_masculina">Percentual de Gordura Corporal Masculina</option>
+                <option value="percentual_gordura_meninos">Percentual de Gordura Corporal Meninos (8-18 anos)</option>
+            <?php elseif (strtolower($aluno['sexo']) === "feminino") : ?>
+                <option value="percentual_gordura_feminina">Percentual de Gordura Corporal Feminina</option>
+                <option value="percentual_gordura_meninas">Percentual de Gordura Corporal Meninas (8-18 anos)</option>
+            <?php else : ?>
+                <option value="percentual_gordura_masculina">Percentual de Gordura Corporal Masculina</option>
+                <option value="percentual_gordura_feminina">Percentual de Gordura Corporal Feminina</option>
+                <option value="percentual_gordura_meninos">Percentual de Gordura Corporal Meninos (8-18 anos)</option>
+                <option value="percentual_gordura_meninas">Percentual de Gordura Corporal Meninas (8-18 anos)</option>
+            <?php endif; ?>
+        </select>
     </div>
 
-    <script>
-        document.getElementById('selectFormula').addEventListener('change', function() {
-    var selectedFormula = this.value;
-    var idadeAluno = parseInt(document.getElementById('idadeAluno').value);
-    var idAluno = <?php echo json_encode($id_aluno); ?>;
-
-    // Verifica se a fórmula selecionada é para percentual de gordura e a idade está entre 8 e 18
-    if ((selectedFormula === 'percentual_gordura_masculina' || selectedFormula === 'percentual_gordura_feminina') && idadeAluno >= 8 && idadeAluno <= 18) {
-            alert("É impossível calcular usando esta fórmula pois o aluno tem entre 8 e 18 anos de idade.");
-            this.value = ''; // Reseta o valor do campo de seleção
-            return; // Impede a execução do cálculo
-        }
-    // Lógica para fazer a requisição AJAX
-    var selectedData = document.getElementById('selectData').value;
-
-    if (selectedFormula && selectedData) {
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', 'calcular.php?id=' + encodeURIComponent(id_aluno) + '&formula=' + encodeURIComponent(selectedFormula) + '&data=' + encodeURIComponent(selectedData), true);
-        xhr.onload = function() {
-            if (xhr.status === 200) {
-                var resultado = xhr.responseText;
-                document.getElementById('resultado').innerText = "Percentual de Gordura Corporal: " + resultado + "%";
+    <div class="data_form hiden" id="testesFisicosFields">
+        <select name="Data" id="selectDataTestesFisicos">
+            <option value="">Data</option>
+            <?php
+            foreach ($datasTestesFisicos as $data) {
+                $data_formatada = date('d/m/Y', strtotime($data));
+                echo "<option value=\"$data\">$data_formatada</option>";
             }
-        };
-        xhr.send();
-    } else {
-        alert("Por favor, selecione uma data e uma fórmula.");
+            ?>
+            </select>
+        <!-- Exibe VO2 diretamente quando Testes Físicos é selecionado -->
+        <p id="vo2Maximo"></p>
+    </div>
+
+    <?php
+    // Adiciona o campo oculto no HTML
+    ?>
+    <h4 id="resultado">Resultados :</h4>
+
+    <div class="btn">
+        <button id="salvarDadosBtn">Salvar</button>
+    </div>
+</div>
+
+<script>
+// Variáveis para armazenar a última fórmula e data selecionadas
+let lastSelectedFormula = '';
+let lastSelectedData = '';
+let lastSelectedDataTestesFisicos = '';
+
+const idadeAluno = <?= json_encode($idade); ?>;
+
+function verificarRestricaoIdade(formula) {
+    const formulasGerais = ["percentual_gordura_masculina", "percentual_gordura_feminina"];
+    const formulasEspecificas = ["percentual_gordura_meninos", "percentual_gordura_meninas"];
+
+    if (idadeAluno >= 8 && idadeAluno <= 18 && formulasGerais.includes(formula)) {
+        alert("A fórmula selecionada é restrita para alunos com +18 anos. Use as fórmulas específicas para essa faixa etária.");
+        return false;
+    } else if (idadeAluno < 8 || (idadeAluno > 18 && formulasEspecificas.includes(formula))) {
+        alert("Esta fórmula é específica para alunos entre 8 e 18 anos.");
+        return false;
     }
+    return true;
+}
+
+// Atualizar visibilidade dos campos
+document.getElementById('btnTestesFisicos').addEventListener('click', function () {
+    document.getElementById('antropometriaFields').classList.add('hiden');
+    document.getElementById('testesFisicosFields').classList.remove('hiden');
+    updateVo2();
+    // Esconde o botão salvar ao selecionar Testes Físicos
+    document.getElementById('salvarDadosBtn').classList.add('hiden');
+
+});
+
+document.getElementById('btnAntropometria').addEventListener('click', function () {
+    document.getElementById('antropometriaFields').classList.remove('hiden');
+    document.getElementById('testesFisicosFields').classList.add('hiden');
+    updateAntropometriaResults();
+
+    // Mostra o botão salvar ao selecionar Antropometria
+    document.getElementById('salvarDadosBtn').classList.remove('hiden');
 });
 
 document.getElementById('selectFormula').addEventListener('change', function () {
     const selectedFormula = this.value;
-    const selectedData = document.getElementById('selectData').value;
-    const idAluno = <?php echo json_encode($id_aluno); ?>;
-
-    if (!idAluno) {
-        alert("ID do aluno não está definido corretamente.");
-        return;
+    if (selectedFormula && !verificarRestricaoIdade(selectedFormula)) {
+        this.value = '';
+    } else if (lastSelectedFormula !== selectedFormula) {
+        lastSelectedFormula = selectedFormula;
+        updateAntropometriaResults();
     }
+});
 
+document.getElementById('selectData').addEventListener('change', function () {
+    if (lastSelectedData !== this.value) {
+        lastSelectedData = this.value;
+        updateAntropometriaResults();
+    }
+});
+
+document.getElementById('selectDataTestesFisicos').addEventListener('change', function () {
+    if (lastSelectedDataTestesFisicos !== this.value) {
+        lastSelectedDataTestesFisicos = this.value;
+        updateVo2();
+    }
+});
+
+function updateAntropometriaResults() {
+    const selectedFormula = lastSelectedFormula;
+    const selectedData = lastSelectedData;
+    const idAluno = <?= json_encode($id_aluno); ?>;
+    const resultadoContainer = document.getElementById('resultado');
+
+    // Verificar se ambos foram selecionados
     if (selectedFormula && selectedData) {
         const xhr = new XMLHttpRequest();
         xhr.open('GET', `calcular.php?id=${encodeURIComponent(idAluno)}&formula=${encodeURIComponent(selectedFormula)}&data=${encodeURIComponent(selectedData)}`, true);
@@ -229,141 +280,143 @@ document.getElementById('selectFormula').addEventListener('change', function () 
             if (xhr.status === 200) {
                 try {
                     const resposta = JSON.parse(xhr.responseText);
+                    resultadoContainer.innerHTML = "";
 
                     if (resposta.error) {
                         alert("Erro: " + resposta.error);
                     } else {
-                        const resultadoContainer = document.getElementById('resultado');
-                        resultadoContainer.innerHTML = "";  // Limpa o conteúdo anterior
-
-                        if (selectedFormula === 'percentual_gordura_masculina' && resposta.percentual_gordura_masculina && resposta.massa_gorda && resposta.massa_magra && resposta.peso) {
-                            // Exibe tabela para percentual_gordura_masculina com massa magra
-                            resultadoContainer.innerHTML = `
-                                <table>
-                                    <tr><th>Fórmula</th><th>Resultado</th></tr>
-                                    <tr><td class='linha' >Percentual de Gordura Corporal</td><td class='linha'>${resposta.percentual_gordura_masculina}%</td></tr>
-                                    <tr><td class='linha'>Massa gorda</td><td class='linha'>${resposta.massa_gorda} kg</td></tr>
-                                    <tr><td class='linha'>Massa magra</td><td class='linha'>${resposta.massa_magra} kg</td></td>
-                                    <tr><td class='linha'>Peso</td><td class='linha'>${resposta.peso} kg</td></tr>
-                                </table>
-                            `;
-                        } else {
-                            // Exibe resultado único para outras fórmulas
-                            for (let key in resposta) {
-                                const unidade = key.includes('percentual_gordura') ? '%' : 'kg';
-                                const formulaDisplayName = key.replace(/_/g, ' ').replace(/\b\w/g, match => match.toUpperCase());
-                                resultadoContainer.innerHTML += `<p>${formulaDisplayName}: ${resposta[key]} ${unidade}</p>`;
-                            }
-                        }
+                        const gorduraPercentual = resposta[selectedFormula];
+                        resultadoContainer.innerHTML = ` 
+                            <table>
+                                <tr><th>Fórmula</th><th>Resultado</th></tr>
+                                <tr><td class='linha'>Percentual de Gordura Corporal</td><td class='linha'>${gorduraPercentual}%</td></tr>
+                                <tr><td class='linha'>Massa gorda</td><td class='linha'>${resposta.massa_gorda} kg</td></tr>
+                                <tr><td class='linha'>Massa magra</td><td class='linha'>${resposta.massa_magra} kg</td></tr>
+                                <tr><td class='linha'>Peso</td><td class='linha'>${resposta.peso} kg</td></tr>
+                            </table>
+                        `;
                     }
                 } catch (e) {
-                    alert('Erro ao processar a resposta JSON: ' + e.message);
+                    console.error("Erro ao processar resposta JSON:", e);
                 }
-            } else {
-                alert('Erro na requisição AJAX. Status: ' + xhr.status);
             }
         };
 
-        xhr.onerror = function () {
-            alert('Erro ao enviar a requisição.');
-        };
-
         xhr.send();
-    } else {
-        alert("Por favor, selecione uma data e uma fórmula.");
     }
-});
+}
 
+function updateVo2() {
+    const idAluno = <?= json_encode($id_aluno); ?>;
+    const selectedDataTestesFisicos = lastSelectedDataTestesFisicos;
+    const resultadoContainer = document.getElementById('resultado');
+
+    if (!idAluno || !selectedDataTestesFisicos) {
+        resultadoContainer.innerHTML = "Selecione uma data válida para os Testes Físicos.";
+        return;
+    }
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', `calcular.php?id=${encodeURIComponent(idAluno)}&formula=VO2_maximo&data=${encodeURIComponent(selectedDataTestesFisicos)}`, true);
+
+    xhr.onload = function () {
+        if (xhr.status === 200) {
+            try {
+                console.log("Resposta completa:", xhr.responseText); // Log da resposta bruta
+
+                const resposta = JSON.parse(xhr.responseText);
+                console.log("Resposta JSON:", resposta); // Log da resposta JSON após o parse
+
+                if (resposta.VO2_maximo) {
+                    resultadoContainer.innerHTML = `
+                        <table>
+                            <tr><th>Fórmula</th><th>Resultado</th></tr>
+                            <tr><td class='linha'>VO2 Máximo</td><td class='linha'>${resposta.VO2_maximo} ml/kg/min</td></tr>
+                        </table>
+                    `;
+                } else {
+                    resultadoContainer.innerHTML = resposta.error || "Erro ao processar o VO2 Máximo.";
+                    console.log("Erro específico na resposta:", resposta.error || "Erro desconhecido");
+                }
+            } catch (e) {
+                resultadoContainer.innerHTML = "Erro ao processar a resposta.";
+                console.error("Erro ao fazer o parse do JSON:", e); // Log do erro de parse
+            }
+        } else {
+            resultadoContainer.innerHTML = "Erro ao buscar o VO2 Máximo.";
+            console.log("Erro no status da resposta:", xhr.status);
+        }
+    };
+
+    xhr.onerror = function () {
+        resultadoContainer.innerHTML = "Erro ao fazer a requisição.";
+        console.error("Erro na requisição XMLHttpRequest");
+    };
+
+    xhr.send();
+}
 
 </script>
 
-    </script>
-
 <script>
 document.getElementById('salvarDadosBtn').addEventListener('click', function() {
-    var selectedFormula = document.getElementById('selectFormula').value;
-    var selectedData = document.getElementById('selectData').value;
-    var idAluno = <?php echo json_encode($_SESSION['aluno_id']); ?>;
-    var idadeAluno = <?php echo json_encode($idade); ?>;
+    const selectedFormula = document.getElementById('selectFormula').value;
+    const selectedData = document.getElementById('selectData').value;
+    const idAluno = <?php echo json_encode($_SESSION['aluno_id']); ?>;
+    const idadeAluno = <?php echo json_encode($idade); ?>;
+    const sexoAluno = <?php echo json_encode($sexo); ?>;
 
-    console.log('selectedFormula:', selectedFormula);
-    console.log('selectedData:', selectedData);
-    console.log('idAluno:', idAluno);
-    console.log('idadeAluno:', idadeAluno);
+    // Pega os valores direto da tabela (a tabela já está gerada com o valor certo para o sexo)
+    const percentualGordura = document.querySelector('#resultado table tr:nth-child(2) td:nth-child(2)').innerText.replace('%', '').trim();
+    const massaGorda = document.querySelector('#resultado table tr:nth-child(3) td:nth-child(2)').innerText.replace('kg', '').trim();
+    const massaMagra = document.querySelector('#resultado table tr:nth-child(4) td:nth-child(2)').innerText.replace('kg', '').trim();
+    const peso = document.querySelector('#resultado table tr:nth-child(5) td:nth-child(2)').innerText.replace('kg', '').trim();
+
+    console.log('Dados para enviar:', { 
+        selectedFormula, selectedData, idAluno, idadeAluno, 
+        sexoAluno, percentualGordura, massaGorda, massaMagra, peso
+    });
 
     if (selectedFormula && selectedData && idAluno && idadeAluno) {
-        var xhr = new XMLHttpRequest();
+        const xhr = new XMLHttpRequest();
         xhr.open('POST', 'processarCalculo.php', true);
         xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
         xhr.onload = function() {
             if (xhr.status === 200) {
-                console.log(xhr.responseText);
-                var response = JSON.parse(xhr.responseText);
-                if (response.success) {
-                    alert(response.success);
-                } else {
-                    alert('Erro: ' + response.error);
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        alert(response.success);
+                    } else {
+                        alert('Erro: ' + response.error);
+                    }
+                } catch (e) {
+                    console.error("Erro ao analisar a resposta:", e);
+                    alert('Erro ao processar a resposta do servidor: ' + xhr.responseText);
                 }
             } else {
-                alert('Erro ao salvar os dados.');
+                alert('Erro ao salvar os dados. Status: ' + xhr.status);
             }
         };
-        var postData = 'id_aluno=' + encodeURIComponent(idAluno) + 
-                       '&data_escolhida=' + encodeURIComponent(selectedData) + 
-                       '&formula_escolhida=' + encodeURIComponent(selectedFormula) + 
-                       '&idade_aluno=' + encodeURIComponent(idadeAluno);
-        console.log('postData:', postData); // Log the postData for debugging
+
+        // Monta os dados para envio
+        const postData = `id_aluno=${encodeURIComponent(idAluno)}&data_escolhida=${encodeURIComponent(selectedData)}&formula_escolhida=${encodeURIComponent(selectedFormula)}&idade_aluno=${encodeURIComponent(idadeAluno)}&percentual_gordura=${encodeURIComponent(percentualGordura)}&massa_gorda=${encodeURIComponent(massaGorda)}&massa_magra=${encodeURIComponent(massaMagra)}&peso=${encodeURIComponent(peso)}`;
+
+        console.log('postData:', postData);
         xhr.send(postData);
     } else {
         alert("Por favor, selecione uma data, uma fórmula, e certifique-se de que os dados do aluno estão corretos.");
     }
 });
+
 </script>
 
-    <script>
-        function confirmarExclusao(event, alunoId) {
-            var resposta = confirm("Tem certeza que deseja excluir este aluno?");
-            if (!resposta) {
-                window.location.replace("../public/detalhes_aluno.php?id=<?= $aluno['id']; ?>");
-                return false;
-            }
-            return true;
-        }
-
-        // Impede a propagação do evento de clique da tr para os elementos filhos
-        document.querySelectorAll('.delete-container').forEach(function(container) {
-            container.addEventListener('click', function(event) {
-                event.stopPropagation();
-            });
-        });
-    </script>
+    <script src="../script/confirmarExclusao.js"></script>
 
     <!-- Script para escolher data do relatório -->
-    <script>
-        function toggleListaDatas(listaId, iconeId) {
-            var listaDatas = document.getElementById(listaId);
-            var setaIcon = document.getElementById(iconeId);
-
-            if (listaDatas.style.display === 'none') {
-                listaDatas.style.display = 'block';
-                setaIcon.classList.remove('fa-chevron-down');
-                setaIcon.classList.add('fa-chevron-up');
-            } else {
-                listaDatas.style.display = 'none';
-                setaIcon.classList.remove('fa-chevron-up');
-                setaIcon.classList.add('fa-chevron-down');
-            }
-        }
-    </script>
+    <script src="../script/toggleListaDatas.js"></script>
     <!-- modal calc -->
-    <script>
-        let calc = document.querySelector("#calc")
-
-        calc.addEventListener("click", () => {
-            document.querySelector("#calculadora").classList.toggle("calculadora")
-            document.querySelector("#calculadora").classList.toggle("hiden")
-        })
-    </script>
+    <script src="../script/calculadora.js"></script>
 
 </body>
 </html>
